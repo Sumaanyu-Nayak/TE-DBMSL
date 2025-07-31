@@ -1,0 +1,283 @@
+--------------
+DROP TABLE IF EXISTS Manages
+--------------
+
+Query OK, 0 rows affected, 1 warning (0.003 sec)
+
+Note (Code 1051): Unknown table 'dbms_assign1.manages'
+--------------
+DROP TABLE IF EXISTS Works
+--------------
+
+Query OK, 0 rows affected, 1 warning (0.000 sec)
+
+Note (Code 1051): Unknown table 'dbms_assign1.works'
+--------------
+DROP TABLE IF EXISTS Company
+--------------
+
+Query OK, 0 rows affected, 1 warning (0.000 sec)
+
+Note (Code 1051): Unknown table 'dbms_assign1.company'
+--------------
+DROP TABLE IF EXISTS Employee
+--------------
+
+Query OK, 0 rows affected, 1 warning (0.000 sec)
+
+Note (Code 1051): Unknown table 'dbms_assign1.employee'
+--------------
+CREATE TABLE Employee (
+    e_id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(50),
+    street VARCHAR(100),
+    city VARCHAR(50),
+    phone VARCHAR(15)
+)
+--------------
+
+Query OK, 0 rows affected (0.012 sec)
+
+--------------
+CREATE TABLE Company (
+    company_name VARCHAR(50) PRIMARY KEY,
+    city VARCHAR(50)
+)
+--------------
+
+Query OK, 0 rows affected (0.007 sec)
+
+--------------
+CREATE TABLE Works (
+    e_id INT,
+    company_name VARCHAR(50),
+    salary INT,
+    PRIMARY KEY (e_id, company_name),
+    FOREIGN KEY (e_id) REFERENCES Employee(e_id),
+    FOREIGN KEY (company_name) REFERENCES Company(company_name)
+)
+--------------
+
+Query OK, 0 rows affected (0.015 sec)
+
+--------------
+CREATE TABLE Manages (
+    e_id INT PRIMARY KEY,
+    dept_name VARCHAR(50),
+    FOREIGN KEY (e_id) REFERENCES Employee(e_id)
+)
+--------------
+
+Query OK, 0 rows affected (0.006 sec)
+
+--------------
+INSERT INTO Employee (e_id, name, street, city, phone) VALUES
+(1, 'Aman Sharma', 'MG Road', 'Delhi', '9999000001'),
+(2, 'Riya Sen', 'Park Street', 'Kolkata', '9999000002'),
+(3, 'Kabir Mehta', 'Brigade Road', 'Bangalore', '9999000003'),
+(4, 'Sneha Kapoor', 'Sector 21', 'Chandigarh', '9999000004'),
+(5, 'Vikas Yadav', 'Banjara Hills', 'Hyderabad', '9999000005'),
+(6, 'Priya Nair', 'Churchgate', 'Mumbai', '9999000006'),
+(7, 'Dev Patel', 'Kalyani Nagar', 'Pune', '9999000007'),
+(8, 'Meera Iyer', 'Anna Nagar', 'Chennai', '9999000008'),
+(9, 'Raj Verma', 'Sector 62', 'Noida', '9999000009'),
+(10, 'Neha Gupta', 'Salt Lake', 'Kolkata', '9999000010')
+--------------
+
+Query OK, 10 rows affected (0.002 sec)
+Records: 10  Duplicates: 0  Warnings: 0
+
+--------------
+INSERT INTO Company VALUES
+('ABC', 'Delhi'),
+('XYZ', 'Mumbai'),
+('PQR', 'Bangalore'),
+('LMN', 'Hyderabad'),
+('OPQ', 'Chennai')
+--------------
+
+Query OK, 5 rows affected (0.002 sec)
+Records: 5  Duplicates: 0  Warnings: 0
+
+--------------
+INSERT INTO Works VALUES
+(1, 'ABC', 45000),
+(2, 'ABC', 52000),
+(3, 'XYZ', 60000),
+(4, 'PQR', 48000),
+(5, 'LMN', 70000),
+(6, 'OPQ', 55000),
+(7, 'ABC', 75000),
+(8, 'XYZ', 50000),
+(9, 'LMN', 65000),
+(10, 'ABC', 80000)
+--------------
+
+Query OK, 10 rows affected (0.001 sec)
+Records: 10  Duplicates: 0  Warnings: 0
+
+--------------
+INSERT INTO Manages VALUES
+(1, 'HR'),
+(2, 'Sales'),
+(3, 'Marketing'),
+(4, 'Finance'),
+(5, 'IT')
+--------------
+
+Query OK, 5 rows affected (0.001 sec)
+Records: 5  Duplicates: 0  Warnings: 0
+
+--------------
+UPDATE Employee
+SET phone = '9876543210'
+WHERE e_id = 1
+--------------
+
+Query OK, 1 row affected (0.000 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+--------------
+DROP VIEW IF EXISTS ABC_Employees
+--------------
+
+Query OK, 0 rows affected, 1 warning (0.000 sec)
+
+Note (Code 4092): Unknown VIEW: 'dbms_assign1.abc_employees'
+--------------
+DROP VIEW IF EXISTS ABC_Employees_HighSalary
+--------------
+
+Query OK, 0 rows affected, 1 warning (0.000 sec)
+
+Note (Code 4092): Unknown VIEW: 'dbms_assign1.abc_employees_highsalary'
+--------------
+CREATE VIEW ABC_Employees AS
+SELECT E.e_id, E.name, E.street, E.city
+FROM Employee E
+JOIN Works W ON E.e_id = W.e_id
+WHERE W.company_name = 'ABC'
+--------------
+
+Query OK, 0 rows affected (0.003 sec)
+
+--------------
+DROP VIEW IF EXISTS ABC_Employees
+--------------
+
+Query OK, 0 rows affected (0.000 sec)
+
+--------------
+CREATE VIEW ABC_Employees AS
+SELECT E.e_id, E.name, E.street, E.city
+FROM Employee E
+JOIN Works W ON E.e_id = W.e_id
+WHERE W.company_name = 'ABC' AND W.salary > 50000
+--------------
+
+Query OK, 0 rows affected (0.004 sec)
+
+--------------
+CREATE VIEW ABC_Employees_HighSalary AS
+SELECT * FROM ABC_Employees
+--------------
+
+Query OK, 0 rows affected (0.003 sec)
+
+--------------
+DROP VIEW ABC_Employees
+--------------
+
+Query OK, 0 rows affected (0.000 sec)
+
+--------------
+INSERT INTO Employee (e_id, name, street, city, phone)
+VALUES (11, 'Prashant Mishra', 'Golf Course Road', 'Gurgaon', '9988776655')
+--------------
+
+Query OK, 1 row affected (0.000 sec)
+
+--------------
+INSERT INTO Works (e_id, company_name, salary)
+VALUES (11, 'ABC', 60000)
+--------------
+
+Query OK, 1 row affected (0.000 sec)
+
+--------------
+UPDATE Works
+SET salary = 65000
+WHERE e_id = 2 AND company_name = 'ABC'
+--------------
+
+Query OK, 1 row affected (0.000 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+--------------
+DELETE FROM Works
+WHERE e_id = 11 AND company_name = 'ABC'
+--------------
+
+Query OK, 1 row affected (0.000 sec)
+
+--------------
+CREATE INDEX idx_employee_city ON Employee(city)
+--------------
+
+Query OK, 0 rows affected (0.007 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+--------------
+CREATE INDEX idx_company_city ON Company(city)
+--------------
+
+Query OK, 0 rows affected (0.007 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+--------------
+DROP INDEX idx_employee_city ON Employee
+--------------
+
+Query OK, 0 rows affected (0.004 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+--------------
+DROP INDEX idx_company_city ON Company
+--------------
+
+Query OK, 0 rows affected (0.005 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+--------------
+CREATE TABLE SalarySeq (
+    next_val INT NOT NULL
+)
+--------------
+
+Query OK, 0 rows affected (0.005 sec)
+
+--------------
+INSERT INTO SalarySeq VALUES (50000)
+--------------
+
+Query OK, 1 row affected (0.000 sec)
+
+--------------
+UPDATE SalarySeq SET next_val = next_val + 5000
+--------------
+
+Query OK, 1 row affected (0.000 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+--------------
+SELECT next_val FROM SalarySeq
+--------------
+
++----------+
+| next_val |
++----------+
+|    55000 |
++----------+
+1 row in set (0.000 sec)
+
+Bye

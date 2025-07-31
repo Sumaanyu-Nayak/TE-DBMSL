@@ -1,0 +1,355 @@
+--------------
+DROP TABLE IF EXISTS Department
+--------------
+
+Query OK, 0 rows affected (0.011 sec)
+
+--------------
+DROP TABLE IF EXISTS Employee
+--------------
+
+Query OK, 0 rows affected (0.005 sec)
+
+--------------
+DROP TABLE IF EXISTS Company
+--------------
+
+Query OK, 0 rows affected (0.003 sec)
+
+--------------
+CREATE TABLE Company (
+    C_ID     INT           PRIMARY KEY,
+    C_Name   VARCHAR(100)  NOT NULL,
+    City     VARCHAR(100)  NOT NULL
+)
+--------------
+
+Query OK, 0 rows affected (0.009 sec)
+
+--------------
+CREATE TABLE Employee (
+    E_ID        INT             PRIMARY KEY AUTO_INCREMENT,
+    E_Name      VARCHAR(100)    NULL,
+    Street      VARCHAR(100)    NULL,
+    City        VARCHAR(100)    NULL,
+    Salary      DECIMAL(10,2)   NULL,
+    Manager_ID  INT             NULL,
+    C_ID        INT             NULL,
+    FOREIGN KEY (Manager_ID) REFERENCES Employee(E_ID) ON DELETE SET NULL ON UPDATE CASCADE,
+    FOREIGN KEY (C_ID)        REFERENCES Company(C_ID) ON DELETE SET NULL ON UPDATE CASCADE
+)
+--------------
+
+Query OK, 0 rows affected (0.010 sec)
+
+--------------
+CREATE TABLE Department (
+    D_ID        INT           PRIMARY KEY,
+    D_Name      VARCHAR(100)  NOT NULL,
+    Manager_ID  INT           NULL,
+    C_ID        INT           NULL,
+    FOREIGN KEY (Manager_ID) REFERENCES Employee(E_ID) ON DELETE SET NULL ON UPDATE CASCADE,
+    FOREIGN KEY (C_ID)        REFERENCES Company(C_ID) ON DELETE SET NULL ON UPDATE CASCADE
+)
+--------------
+
+Query OK, 0 rows affected (0.009 sec)
+
+--------------
+INSERT INTO Company VALUES 
+  (1, 'Amazon',   'Pune'),
+  (2, 'Google',   'Hyderabad'),
+  (3, 'Flipkart', 'Bangalore'),
+  (4, 'ABC Corp', 'Mumbai')
+--------------
+
+Query OK, 4 rows affected (0.001 sec)
+Records: 4  Duplicates: 0  Warnings: 0
+
+--------------
+INSERT INTO Employee (E_ID, E_Name, Street, City, Salary, Manager_ID, C_ID) VALUES 
+  (101, 'Alice',   'MG Road',      'Pune',      60000, NULL, 1),
+  (102, 'Bob',     'Park St',      'Hyderabad', 75000, 101, 2),
+  (103, 'Charlie', 'BTM Layout',   'Bangalore', 40000, 101, 3),
+  (104, 'David',   'Andheri West', 'Mumbai',    35000, 102, 4),
+  (105, 'Eva',     'Baner',        'Pune',      50000, 102, 1)
+--------------
+
+Query OK, 5 rows affected (0.002 sec)
+Records: 5  Duplicates: 0  Warnings: 0
+
+--------------
+INSERT INTO Department VALUES 
+  (1, 'Sales',      101, 1),
+  (2, 'R&D',        102, 2),
+  (3, 'HR',         103, 3)
+--------------
+
+Query OK, 3 rows affected (0.002 sec)
+Records: 3  Duplicates: 0  Warnings: 0
+
+--------------
+INSERT INTO Employee (Street, City) VALUES ('JM Road', 'Pune')
+--------------
+
+Query OK, 1 row affected (0.000 sec)
+
+--------------
+SELECT * FROM Employee
+--------------
+
++------+---------+--------------+-----------+----------+------------+------+
+| E_ID | E_Name  | Street       | City      | Salary   | Manager_ID | C_ID |
++------+---------+--------------+-----------+----------+------------+------+
+|  101 | Alice   | MG Road      | Pune      | 60000.00 |       NULL |    1 |
+|  102 | Bob     | Park St      | Hyderabad | 75000.00 |        101 |    2 |
+|  103 | Charlie | BTM Layout   | Bangalore | 40000.00 |        101 |    3 |
+|  104 | David   | Andheri West | Mumbai    | 35000.00 |        102 |    4 |
+|  105 | Eva     | Baner        | Pune      | 50000.00 |        102 |    1 |
+|  106 | NULL    | JM Road      | Pune      |     NULL |       NULL | NULL |
++------+---------+--------------+-----------+----------+------------+------+
+6 rows in set (0.003 sec)
+
+--------------
+SELECT * FROM Company
+--------------
+
++------+----------+-----------+
+| C_ID | C_Name   | City      |
++------+----------+-----------+
+|    1 | Amazon   | Pune      |
+|    2 | Google   | Hyderabad |
+|    3 | Flipkart | Bangalore |
+|    4 | ABC Corp | Mumbai    |
++------+----------+-----------+
+4 rows in set (0.000 sec)
+
+--------------
+SELECT E_ID, E_Name FROM Employee
+--------------
+
++------+---------+
+| E_ID | E_Name  |
++------+---------+
+|  101 | Alice   |
+|  102 | Bob     |
+|  103 | Charlie |
+|  104 | David   |
+|  105 | Eva     |
+|  106 | NULL    |
++------+---------+
+6 rows in set (0.000 sec)
+
+--------------
+SELECT DISTINCT E.E_Name
+FROM Employee E
+JOIN Department D ON E.E_ID = D.Manager_ID
+--------------
+
++---------+
+| E_Name  |
++---------+
+| Alice   |
+| Bob     |
+| Charlie |
++---------+
+3 rows in set (0.003 sec)
+
+--------------
+SELECT DISTINCT City FROM Company
+--------------
+
++-----------+
+| City      |
++-----------+
+| Pune      |
+| Hyderabad |
+| Bangalore |
+| Mumbai    |
++-----------+
+4 rows in set (0.000 sec)
+
+--------------
+UPDATE Employee
+SET Street = 'New Street',
+    City   = 'New City'
+WHERE E_ID = 12345
+--------------
+
+Query OK, 0 rows affected (0.002 sec)
+Rows matched: 0  Changed: 0  Warnings: 0
+
+--------------
+UPDATE Employee
+SET Salary = Salary + 10000
+WHERE C_ID = (SELECT C_ID FROM Company WHERE C_Name = 'Amazon')
+--------------
+
+Query OK, 2 rows affected (0.003 sec)
+Rows matched: 2  Changed: 2  Warnings: 0
+
+--------------
+DELETE FROM Employee
+WHERE Salary BETWEEN 20000 AND 50000
+--------------
+
+Query OK, 2 rows affected (0.001 sec)
+
+--------------
+SELECT C_Name
+FROM Company
+WHERE City LIKE 'P%'
+--------------
+
++--------+
+| C_Name |
++--------+
+| Amazon |
++--------+
+1 row in set (0.000 sec)
+
+--------------
+SELECT *
+FROM Employee
+WHERE C_ID IN (
+    SELECT C_ID FROM Company
+    WHERE C_Name IN ('Amazon','Flipkart','Google')
+)
+--------------
+
++------+--------+---------+-----------+----------+------------+------+
+| E_ID | E_Name | Street  | City      | Salary   | Manager_ID | C_ID |
++------+--------+---------+-----------+----------+------------+------+
+|  101 | Alice  | MG Road | Pune      | 70000.00 |       NULL |    1 |
+|  105 | Eva    | Baner   | Pune      | 60000.00 |        102 |    1 |
+|  102 | Bob    | Park St | Hyderabad | 75000.00 |        101 |    2 |
++------+--------+---------+-----------+----------+------------+------+
+3 rows in set (0.001 sec)
+
+--------------
+SELECT AVG(Salary) AS Avg_Salary
+FROM Employee
+WHERE C_ID = (SELECT C_ID FROM Company WHERE C_Name = 'ABC Corp')
+--------------
+
++------------+
+| Avg_Salary |
++------------+
+|       NULL |
++------------+
+1 row in set (0.003 sec)
+
+--------------
+SELECT COUNT(*) AS Total_Employees
+FROM Employee
+WHERE C_ID = (SELECT C_ID FROM Company WHERE C_Name = 'Amazon')
+--------------
+
++-----------------+
+| Total_Employees |
++-----------------+
+|               2 |
++-----------------+
+1 row in set (0.000 sec)
+
+--------------
+SELECT MAX(Salary) AS Max_Salary,
+       MIN(Salary) AS Min_Salary
+FROM Employee
+WHERE C_ID = (SELECT C_ID FROM Company WHERE C_Name = 'Google')
+--------------
+
++------------+------------+
+| Max_Salary | Min_Salary |
++------------+------------+
+|   75000.00 |   75000.00 |
++------------+------------+
+1 row in set (0.001 sec)
+
+--------------
+SELECT SUM(Salary) AS Total_Salary
+FROM Employee
+WHERE C_ID = (SELECT C_ID FROM Company WHERE C_Name = 'ABC Corp')
+--------------
+
++--------------+
+| Total_Salary |
++--------------+
+|         NULL |
++--------------+
+1 row in set (0.000 sec)
+
+--------------
+SELECT * FROM Company
+ORDER BY C_Name ASC, City DESC
+--------------
+
++------+----------+-----------+
+| C_ID | C_Name   | City      |
++------+----------+-----------+
+|    4 | ABC Corp | Mumbai    |
+|    1 | Amazon   | Pune      |
+|    3 | Flipkart | Bangalore |
+|    2 | Google   | Hyderabad |
++------+----------+-----------+
+4 rows in set (0.001 sec)
+
+--------------
+SELECT E_Name
+FROM Employee
+WHERE C_ID = (SELECT C_ID FROM Company WHERE C_Name = 'Amazon')
+UNION
+SELECT E_Name
+FROM Employee
+WHERE C_ID = (SELECT C_ID FROM Company WHERE C_Name = 'Google')
+--------------
+
++--------+
+| E_Name |
++--------+
+| Alice  |
+| Eva    |
+| Bob    |
++--------+
+3 rows in set (0.001 sec)
+
+--------------
+SELECT E_Name
+FROM Employee
+WHERE C_ID = (SELECT C_ID FROM Company WHERE C_Name = 'Amazon')
+UNION ALL
+SELECT E_Name
+FROM Employee
+WHERE C_ID = (SELECT C_ID FROM Company WHERE C_Name = 'Google')
+--------------
+
++--------+
+| E_Name |
++--------+
+| Alice  |
+| Eva    |
+| Bob    |
++--------+
+3 rows in set (0.000 sec)
+
+--------------
+SELECT * FROM Employee
+WHERE E_ID IN (SELECT Manager_ID FROM Department)
+--------------
+
++------+--------+---------+-----------+----------+------------+------+
+| E_ID | E_Name | Street  | City      | Salary   | Manager_ID | C_ID |
++------+--------+---------+-----------+----------+------------+------+
+|  101 | Alice  | MG Road | Pune      | 70000.00 |       NULL |    1 |
+|  102 | Bob    | Park St | Hyderabad | 75000.00 |        101 |    2 |
++------+--------+---------+-----------+----------+------------+------+
+2 rows in set (0.001 sec)
+
+--------------
+SELECT * FROM Employee
+WHERE E_ID NOT IN (SELECT Manager_ID FROM Department)
+--------------
+
+Empty set (0.001 sec)
+
+Bye

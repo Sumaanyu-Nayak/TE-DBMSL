@@ -1,0 +1,325 @@
+--------------
+CREATE TABLE Employee (
+    e_id INT PRIMARY KEY,
+    name VARCHAR(100),
+    dob DATE
+)
+--------------
+
+Query OK, 0 rows affected (0.036 sec)
+
+--------------
+CREATE TABLE Company (
+    company_name VARCHAR(100) PRIMARY KEY,
+    city VARCHAR(100)
+)
+--------------
+
+Query OK, 0 rows affected (0.005 sec)
+
+--------------
+CREATE TABLE Works (
+    e_id INT,
+    company_name VARCHAR(100),
+    salary INT,
+    PRIMARY KEY (e_id, company_name),
+    FOREIGN KEY (e_id) REFERENCES Employee(e_id) ON DELETE CASCADE,
+    FOREIGN KEY (company_name) REFERENCES Company(company_name) ON DELETE CASCADE
+)
+--------------
+
+Query OK, 0 rows affected (0.005 sec)
+
+--------------
+CREATE TABLE Manages (
+    e_id INT PRIMARY KEY,
+    dept_name VARCHAR(100),
+    FOREIGN KEY (e_id) REFERENCES Employee(e_id) ON DELETE CASCADE
+)
+--------------
+
+Query OK, 0 rows affected (0.004 sec)
+
+--------------
+INSERT INTO Employee VALUES
+(1, 'Alice', '1990-01-01'),
+(2, 'Bob', '1988-02-02'),
+(3, 'Charlie', '1992-03-03')
+--------------
+
+Query OK, 3 rows affected (0.003 sec)
+Records: 3  Duplicates: 0  Warnings: 0
+
+--------------
+INSERT INTO Company VALUES
+('ABC', 'Pune'),
+('XYZ', 'Mumbai')
+--------------
+
+Query OK, 2 rows affected (0.001 sec)
+Records: 2  Duplicates: 0  Warnings: 0
+
+--------------
+INSERT INTO Works VALUES
+(1, 'ABC', 60000),
+(2, 'ABC', 40000),
+(3, 'XYZ', 55000)
+--------------
+
+Query OK, 3 rows affected (0.000 sec)
+Records: 3  Duplicates: 0  Warnings: 0
+
+--------------
+INSERT INTO Manages VALUES
+(1, 'HR'),
+(2, 'Tech')
+--------------
+
+Query OK, 2 rows affected (0.001 sec)
+Records: 2  Duplicates: 0  Warnings: 0
+
+--------------
+CREATE VIEW ABC_Employees_HighSalary AS
+SELECT E.name, W.salary
+FROM Employee E
+JOIN Works W ON E.e_id = W.e_id
+WHERE W.company_name = 'ABC' AND W.salary > 50000
+--------------
+
+Query OK, 0 rows affected (0.007 sec)
+
+--------------
+CREATE INDEX idx_city ON Company(city)
+--------------
+
+Query OK, 0 rows affected (0.006 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+--------------
+CREATE TABLE SalarySeq (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    employee_name VARCHAR(100),
+    salary INT
+)
+--------------
+
+Query OK, 0 rows affected (0.003 sec)
+
+--------------
+SELECT * FROM Employee
+--------------
+
++------+---------+------------+
+| e_id | name    | dob        |
++------+---------+------------+
+|    1 | Alice   | 1990-01-01 |
+|    2 | Bob     | 1988-02-02 |
+|    3 | Charlie | 1992-03-03 |
++------+---------+------------+
+3 rows in set (0.001 sec)
+
+--------------
+SELECT * FROM Company
+--------------
+
++--------------+--------+
+| company_name | city   |
++--------------+--------+
+| XYZ          | Mumbai |
+| ABC          | Pune   |
++--------------+--------+
+2 rows in set (0.001 sec)
+
+--------------
+SELECT * FROM Works
+--------------
+
++------+--------------+--------+
+| e_id | company_name | salary |
++------+--------------+--------+
+|    1 | ABC          |  60000 |
+|    2 | ABC          |  40000 |
+|    3 | XYZ          |  55000 |
++------+--------------+--------+
+3 rows in set (0.000 sec)
+
+--------------
+SELECT * FROM Manages
+--------------
+
++------+-----------+
+| e_id | dept_name |
++------+-----------+
+|    1 | HR        |
+|    2 | Tech      |
++------+-----------+
+2 rows in set (0.000 sec)
+
+--------------
+SELECT * FROM ABC_Employees_HighSalary
+--------------
+
++-------+--------+
+| name  | salary |
++-------+--------+
+| Alice |  60000 |
++-------+--------+
+1 row in set (0.004 sec)
+
+--------------
+SHOW INDEX FROM Company
+--------------
+
++---------+------------+----------+--------------+--------------+-----------+-------------+----------+--------+------+------------+---------+---------------+
+| Table   | Non_unique | Key_name | Seq_in_index | Column_name  | Collation | Cardinality | Sub_part | Packed | Null | Index_type | Comment | Index_comment |
++---------+------------+----------+--------------+--------------+-----------+-------------+----------+--------+------+------------+---------+---------------+
+| company |          0 | PRIMARY  |            1 | company_name | A         |           2 |     NULL | NULL   |      | BTREE      |         |               |
+| company |          1 | idx_city |            1 | city         | A         |           2 |     NULL | NULL   | YES  | BTREE      |         |               |
++---------+------------+----------+--------------+--------------+-----------+-------------+----------+--------+------+------------+---------+---------------+
+2 rows in set (0.001 sec)
+
+--------------
+UPDATE Works SET salary = 65000 WHERE e_id = 1 AND company_name = 'ABC'
+--------------
+
+Query OK, 1 row affected (0.000 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+--------------
+SELECT * FROM ABC_Employees_HighSalary
+--------------
+
++-------+--------+
+| name  | salary |
++-------+--------+
+| Alice |  65000 |
++-------+--------+
+1 row in set (0.000 sec)
+
+--------------
+DELETE FROM Manages WHERE e_id = 2
+--------------
+
+Query OK, 1 row affected (0.001 sec)
+
+--------------
+SELECT * FROM Manages
+--------------
+
++------+-----------+
+| e_id | dept_name |
++------+-----------+
+|    1 | HR        |
++------+-----------+
+1 row in set (0.000 sec)
+
+--------------
+INSERT INTO SalarySeq (employee_name, salary)
+SELECT E.name, W.salary
+FROM Employee E
+JOIN Works W ON E.e_id = W.e_id
+--------------
+
+Query OK, 3 rows affected (0.001 sec)
+Records: 3  Duplicates: 0  Warnings: 0
+
+--------------
+SELECT * FROM SalarySeq
+--------------
+
++----+---------------+--------+
+| id | employee_name | salary |
++----+---------------+--------+
+|  1 | Alice         |  65000 |
+|  2 | Bob           |  40000 |
+|  3 | Charlie       |  55000 |
++----+---------------+--------+
+3 rows in set (0.000 sec)
+
+--------------
+DROP INDEX idx_city ON Company
+--------------
+
+Query OK, 0 rows affected (0.006 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+--------------
+SHOW INDEX FROM Company
+--------------
+
++---------+------------+----------+--------------+--------------+-----------+-------------+----------+--------+------+------------+---------+---------------+
+| Table   | Non_unique | Key_name | Seq_in_index | Column_name  | Collation | Cardinality | Sub_part | Packed | Null | Index_type | Comment | Index_comment |
++---------+------------+----------+--------------+--------------+-----------+-------------+----------+--------+------+------------+---------+---------------+
+| company |          0 | PRIMARY  |            1 | company_name | A         |           2 |     NULL | NULL   |      | BTREE      |         |               |
++---------+------------+----------+--------------+--------------+-----------+-------------+----------+--------+------+------------+---------+---------------+
+1 row in set (0.000 sec)
+
+--------------
+DROP VIEW ABC_Employees_HighSalary
+--------------
+
+Query OK, 0 rows affected (0.000 sec)
+
+--------------
+SELECT * FROM Employee
+--------------
+
++------+---------+------------+
+| e_id | name    | dob        |
++------+---------+------------+
+|    1 | Alice   | 1990-01-01 |
+|    2 | Bob     | 1988-02-02 |
+|    3 | Charlie | 1992-03-03 |
++------+---------+------------+
+3 rows in set (0.000 sec)
+
+--------------
+SELECT * FROM Company
+--------------
+
++--------------+--------+
+| company_name | city   |
++--------------+--------+
+| ABC          | Pune   |
+| XYZ          | Mumbai |
++--------------+--------+
+2 rows in set (0.000 sec)
+
+--------------
+SELECT * FROM Works
+--------------
+
++------+--------------+--------+
+| e_id | company_name | salary |
++------+--------------+--------+
+|    1 | ABC          |  65000 |
+|    2 | ABC          |  40000 |
+|    3 | XYZ          |  55000 |
++------+--------------+--------+
+3 rows in set (0.000 sec)
+
+--------------
+SELECT * FROM Manages
+--------------
+
++------+-----------+
+| e_id | dept_name |
++------+-----------+
+|    1 | HR        |
++------+-----------+
+1 row in set (0.000 sec)
+
+--------------
+SELECT * FROM SalarySeq
+--------------
+
++----+---------------+--------+
+| id | employee_name | salary |
++----+---------------+--------+
+|  1 | Alice         |  65000 |
+|  2 | Bob           |  40000 |
+|  3 | Charlie       |  55000 |
++----+---------------+--------+
+3 rows in set (0.000 sec)
+
+Bye
