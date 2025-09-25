@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MongoDB CRUD Operations - Python Backend</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        h2 {
+            color: #2c5aa0;
+            border-bottom: 2px solid #2c5aa0;
+            padding-bottom: 5px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        input, textarea, select, button {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        button {
+            background-color: #2c5aa0;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #1e3d6f;
+        }
+
+        .delete-btn {
+            background-color: #dc3545;
+        }
+
+        .delete-btn:hover {
+            background-color: #c82333;
+        }
+
+        .update-btn {
+            background-color: #28a745;
+        }
+
+        .update-btn:hover {
+            background-color: #218838;
+        }
+
+        .info-btn {
+            background-color: #17a2b8;
+        }
+
+        .info-btn:hover {
+            background-color: #138496;
+        }
+
+        .results {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .operation {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .operation {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .status {
+            text-align: center;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+
+        .server-status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .server-online {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .server-offline {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        pre {
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .two-column {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>MongoDB CRUD Operations</h1>
+    
+    <!-- Server Status -->
+    <div class="container">
+        <h2>Backend Server Status</h2>
+        <div id="serverStatus" class="server-status">Checking server...</div>
+        <button onclick="checkServerStatus()" class="info-btn">Check Server Status</button>
+    </div>
+
+    <!-- Connection Configuration -->
+    <div class="container">
+        <h2>Database Connection</h2>
+        <div class="form-group">
+            <label for="dbPassword">Database Password:</label>
+            <input type="password" id="dbPassword" placeholder="Enter your MongoDB Atlas password">
+        </div>
+        <div class="two-column">
+            <div class="form-group">
+                <label for="databaseName">Database Name:</label>
+                <input type="text" id="databaseName" placeholder="Database name" value="testdb">
+            </div>
+            <div class="form-group">
+                <label for="collectionName">Collection Name:</label>
+                <input type="text" id="collectionName" placeholder="Collection name" value="users">
+            </div>
+        </div>
+        <button onclick="connectToDatabase()">Connect to Database</button>
+        <div id="connectionStatus" class="status" style="display: none;"></div>
+    </div>
+
+    <!-- Database Info -->
+    <div class="container">
+        <h2>Database Information</h2>
+        <div class="two-column">
+            <button onclick="getCollections()" class="info-btn">List Collections</button>
+            <button onclick="getStats()" class="info-btn">Get Collection Stats</button>
+        </div>
+        <div id="infoResult" class="results" style="display: none;"></div>
+    </div>
+
+    <!-- CREATE Operation -->
+    <div class="container">
+        <h2>Create Document</h2>
+        <div class="operation">
+            <div>
+                <div class="form-group">
+                    <label for="createData">Document Data (JSON):</label>
+                    <textarea id="createData" rows="6" placeholder='{"name": "John Doe", "email": "john@example.com", "age": 30, "city": "New York"}'></textarea>
+                </div>
+                <button onclick="createDocument()">Create Document</button>
+            </div>
+            <div id="createResult" class="results" style="display: none;"></div>
+        </div>
+    </div>
+
+    <!-- READ Operation -->
+    <div class="container">
+        <h2>Read Documents</h2>
+        <div class="operation">
+            <div>
+                <div class="form-group">
+                    <label for="readFilter">Filter (JSON - optional):</label>
+                    <textarea id="readFilter" rows="3" placeholder='{"age": {"$gte": 18}} or {} for all documents'></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="readLimit">Limit:</label>
+                    <input type="number" id="readLimit" value="10" min="1" max="100">
+                </div>
+                <button onclick="readDocuments()">Read Documents</button>
+            </div>
+            <div id="readResult" class="results" style="display: none;"></div>
+        </div>
+    </div>
+
+    <!-- UPDATE Operation -->
+    <div class="container">
+        <h2>Update Documents</h2>
+        <div class="operation">
+            <div>
+                <div class="form-group">
+                    <label for="updateFilter">Filter (JSON):</label>
+                    <textarea id="updateFilter" rows="3" placeholder='{"name": "John Doe"}'></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="updateData">Update Data (JSON):</label>
+                    <textarea id="updateData" rows="4" placeholder='{"$set": {"age": 31, "city": "Boston"}}'></textarea>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="updateMultiple"> Update Multiple Documents
+                    </label>
+                </div>
+                <button onclick="updateDocuments()" class="update-btn">Update Documents</button>
+            </div>
+            <div id="updateResult" class="results" style="display: none;"></div>
+        </div>
+    </div>
+
+    <!-- DELETE Operation -->
+    <div class="container">
+        <h2>Delete Documents</h2>
+        <div class="operation">
+            <div>
+                <div class="form-group">
+                    <label for="deleteFilter">Filter (JSON):</label>
+                    <textarea id="deleteFilter" rows="3" placeholder='{"age": {"$lt": 18}}'></textarea>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="deleteMultiple"> Delete Multiple Documents
+                    </label>
+                </div>
+                <button onclick="deleteDocuments()" class="delete-btn">Delete Documents</button>
+            </div>
+            <div id="deleteResult" class="results" style="display: none;"></div>
+        </div>
+    </div>
+
+    <!-- AGGREGATE Operation -->
+    <div class="container">
+        <h2>Aggregate Documents</h2>
+        <div class="operation">
+            <div>
+                <div class="form-group">
+                    <label for="aggregatePipeline">Aggregation Pipeline (JSON Array):</label>
+                    <textarea id="aggregatePipeline" rows="6" placeholder='[{"$group": {"_id": "$city", "count": {"$sum": 1}, "avgAge": {"$avg": "$age"}}}, {"$sort": {"count": -1}}]'></textarea>
+                </div>
+                <button onclick="aggregateDocuments()">Run Aggregation</button>
+            </div>
+            <div id="aggregateResult" class="results" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:5000/api';
+        let isConnected = false;
+
+        // Check if backend server is running
+        async function checkServerStatus() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/status`);
+                const data = await response.json();
+                
+                const statusElement = document.getElementById('serverStatus');
+                if (response.ok) {
+                    statusElement.className = 'server-status server-online';
+                    if (data.connected) {
+                        statusElement.textContent = `✅ Server Online - Connected to DB: ${data.database}, Collection: ${data.collection}`;
+                        isConnected = true;
+                    } else {
+                        statusElement.textContent = '✅ Server Online - Not connected to database';
+                        isConnected = false;
+                    }
+                } else {
+                    throw new Error('Server offline');
+                }
+            } catch (error) {
+                const statusElement = document.getElementById('serverStatus');
+                statusElement.className = 'server-status server-offline';
+                statusElement.textContent = '❌ Server Offline - Please start the Python backend server';
+                isConnected = false;
+            }
+        }
+
+        // Connect to MongoDB
+        async function connectToDatabase() {
+            const password = document.getElementById('dbPassword').value.trim();
+            const database = document.getElementById('databaseName').value.trim();
+            const collection = document.getElementById('collectionName').value.trim();
+
+            if (!password || !database || !collection) {
+                showStatus('connectionStatus', 'Please fill in all fields', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/connect`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        password: password,
+                        database: database,
+                        collection: collection
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showStatus('connectionStatus', `✅ ${data.message} - Database: ${data.database}, Collection: ${data.collection}`, 'success');
+                    isConnected = true;
+                    checkServerStatus(); // Update server status
+                } else {
+                    showStatus('connectionStatus', `❌ ${data.message}`, 'error');
+                    isConnected = false;
+                }
+            } catch (error) {
+                showStatus('connectionStatus', `❌ Connection failed: ${error.message}`, 'error');
+                isConnected = false;
+            }
+        }
+
+        // Create document
+        async function createDocument() {
+            if (!checkConnection()) return;
+
+            const dataText = document.getElementById('createData').value.trim();
+            if (!dataText) {
+                showResult('createResult', 'Please enter document data', 'error');
+                return;
+            }
+
+            try {
+                const document = JSON.parse(dataText);
+                
+                const response = await fetch(`${API_BASE_URL}/create`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ document: document })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showResult('createResult', `✅ Document created successfully!\n\nInserted ID: ${data.inserted_id}\nAcknowledged: ${data.acknowledged}`, 'success');
+                    document.getElementById('createData').value = '';
+                } else {
+                    showResult('createResult', `❌ Error: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                if (error instanceof SyntaxError) {
+                    showResult('createResult', '❌ Invalid JSON format', 'error');
+                } else {
+                    showResult('createResult', `❌ Error: ${error.message}`, 'error');
+                }
+            }
+        }
+
+        // Read documents
+        async function readDocuments() {
+            if (!checkConnection()) return;
+
+            const filterText = document.getElementById('readFilter').value.trim();
+            const limit = parseInt(document.getElementById('readLimit').value) || 10;
+
+            try {
+                let filter = {};
+                if (filterText) {
+                    filter = JSON.parse(filterText);
+                }
+
+                const response = await fetch(`${API_BASE_URL}/read`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        filter: filter,
+                        limit: limit
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showResult('readResult', `✅ Found ${data.count} document(s)\n\n${JSON.stringify(data.documents, null, 2)}`, 'success');
+                } else {
+                    showResult('readResult', `❌ Error: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                if (error instanceof SyntaxError) {
+                    showResult('readResult', '❌ Invalid JSON format in filter', 'error');
+                } else {
+                    showResult('readResult', `❌ Error: ${error.message}`, 'error');
+                }
+            }
+        }
+
+        // Update documents
+        async function updateDocuments() {
+            if (!checkConnection()) return;
+
+            const filterText = document.getElementById('updateFilter').value.trim();
+            const updateText = document.getElementById('updateData').value.trim();
+            const multiple = document.getElementById('updateMultiple').checked;
+
+            if (!filterText || !updateText) {
+                showResult('updateResult', 'Please enter both filter and update data', 'error');
+                return;
+            }
+
+            try {
+                const filter = JSON.parse(filterText);
+                const update = JSON.parse(updateText);
+
+                const response = await fetch(`${API_BASE_URL}/update`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        filter: filter,
+                        update: update,
+                        multiple: multiple
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showResult('updateResult', `✅ Update completed!\n\nMatched: ${data.matched_count} document(s)\nModified: ${data.modified_count} document(s)\nAcknowledged: ${data.acknowledged}`, 'success');
+                    document.getElementById('updateFilter').value = '';
+                    document.getElementById('updateData').value = '';
+                    document.getElementById('updateMultiple').checked = false;
+                } else {
+                    showResult('updateResult', `❌ Error: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                if (error instanceof SyntaxError) {
+                    showResult('updateResult', '❌ Invalid JSON format', 'error');
+                } else {
+                    showResult('updateResult', `❌ Error: ${error.message}`, 'error');
+                }
+            }
+        }
+
+        // Delete documents
+        async function deleteDocuments() {
+            if (!checkConnection()) return;
+
+            const filterText = document.getElementById('deleteFilter').value.trim();
+            const multiple = document.getElementById('deleteMultiple').checked;
+
+            if (!filterText) {
+                showResult('deleteResult', 'Please enter filter criteria', 'error');
+                return;
+            }
+
+            try {
+                const filter = JSON.parse(filterText);
+
+                const response = await fetch(`${API_BASE_URL}/delete`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        filter: filter,
+                        multiple: multiple
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showResult('deleteResult', `✅ Delete completed!\n\nDeleted: ${data.deleted_count} document(s)\nAcknowledged: ${data.acknowledged}`, 'success');
+                    document.getElementById('deleteFilter').value = '';
+                    document.getElementById('deleteMultiple').checked = false;
+                } else {
+                    showResult('deleteResult', `❌ Error: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                if (error instanceof SyntaxError) {
+                    showResult('deleteResult', '❌ Invalid JSON format', 'error');
+                } else {
+                    showResult('deleteResult', `❌ Error: ${error.message}`, 'error');
+                }
+            }
+        }
+
+        // Aggregate documents
+        async function aggregateDocuments() {
+            if (!checkConnection()) return;
+
+            const pipelineText = document.getElementById('aggregatePipeline').value.trim();
+
+            if (!pipelineText) {
+                showResult('aggregateResult', 'Please enter aggregation pipeline', 'error');
+                return;
+            }
+
+            try {
+                const pipeline = JSON.parse(pipelineText);
+
+                const response = await fetch(`${API_BASE_URL}/aggregate`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ pipeline: pipeline })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showResult('aggregateResult', `✅ Aggregation completed!\n\nResults (${data.count} document(s)):\n${JSON.stringify(data.results, null, 2)}`, 'success');
+                    document.getElementById('aggregatePipeline').value = '';
+                } else {
+                    showResult('aggregateResult', `❌ Error: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                if (error instanceof SyntaxError) {
+                    showResult('aggregateResult', '❌ Invalid JSON format', 'error');
+                } else {
+                    showResult('aggregateResult', `❌ Error: ${error.message}`, 'error');
+                }
+            }
+        }
+
+        // Get collections list
+        async function getCollections() {
+            if (!isConnected) {
+                showResult('infoResult', '❌ Please connect to database first', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/collections`);
+                const data = await response.json();
+
+                if (data.success) {
+                    showResult('infoResult', `✅ Collections in database:\n\n${JSON.stringify(data.collections, null, 2)}`, 'success');
+                } else {
+                    showResult('infoResult', `❌ Error: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                showResult('infoResult', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Get collection statistics
+        async function getStats() {
+            if (!isConnected) {
+                showResult('infoResult', '❌ Please connect to database first', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/stats`);
+                const data = await response.json();
+
+                if (data.success) {
+                    const stats = data.stats;
+                    const statsText = `✅ Collection Statistics:
+
+Document Count: ${stats.count}
+Total Size: ${stats.size} bytes
+Average Object Size: ${stats.avgObjSize} bytes
+Storage Size: ${stats.storageSize} bytes
+Number of Indexes: ${stats.indexes}`;
+                    showResult('infoResult', statsText, 'success');
+                } else {
+                    showResult('infoResult', `❌ Error: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                showResult('infoResult', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Helper functions
+        function checkConnection() {
+            if (!isConnected) {
+                alert('❌ Please connect to database first!');
+                return false;
+            }
+            return true;
+        }
+
+        function showResult(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            element.innerHTML = `<pre>${message}</pre>`;
+            element.className = `results ${type}`;
+        }
+
+        function showStatus(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            element.textContent = message;
+            element.className = `status ${type}`;
+        }
+
+        // Initialize on page load
+        window.addEventListener('load', function() {
+            checkServerStatus();
+            
+            // Show instructions
+            console.log(`
+=== MongoDB CRUD Application ===
+
+1. Start the Python backend server:
+   python backend.py
+
+2. Server will run on: http://localhost:5000
+
+3. Required Python packages:
+   pip install flask flask-cors pymongo
+
+4. Then use this interface to perform CRUD operations!
+            `);
+        });
+
+        // Auto-check server status every 30 seconds
+        setInterval(checkServerStatus, 30000);
+    </script>
+</body>
+</html>
