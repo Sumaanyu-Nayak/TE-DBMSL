@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MySQL CRUD Operations - Python Backend</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        h2 {
+            color: #d9534f;
+            border-bottom: 2px solid #d9534f;
+            padding-bottom: 5px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        input, textarea, select, button {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        input[type="number"] {
+            width: auto;
+            min-width: 100px;
+        }
+
+        input[type="checkbox"] {
+            width: auto;
+            margin-right: 5px;
+        }
+
+        button {
+            background-color: #d9534f;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #c9302c;
+        }
+
+        .create-btn {
+            background-color: #5cb85c;
+        }
+
+        .create-btn:hover {
+            background-color: #449d44;
+        }
+
+        .update-btn {
+            background-color: #f0ad4e;
+        }
+
+        .update-btn:hover {
+            background-color: #ec971f;
+        }
+
+        .info-btn {
+            background-color: #5bc0de;
+        }
+
+        .info-btn:hover {
+            background-color: #31b0d5;
+        }
+
+        .query-btn {
+            background-color: #337ab7;
+        }
+
+        .query-btn:hover {
+            background-color: #286090;
+        }
+
+        .results {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .operation {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        @media (max-width: 768px) {
+            .operation {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .status {
+            text-align: center;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+
+        .server-status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .server-online {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .server-offline {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        pre {
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-size: 12px;
+        }
+
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .three-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+        }
+
+        .four-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .two-column, .three-column, .four-column {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+
+        .column-input {
+            display: grid;
+            grid-template-columns: 2fr 2fr 1fr 1fr 1fr;
+            gap: 5px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .column-input input, .column-input select {
+            padding: 5px;
+            font-size: 12px;
+        }
+
+        .add-column-btn {
+            background-color: #5cb85c;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .remove-column-btn {
+            background-color: #d9534f;
+            color: white;
+            border: none;
+            padding: 5px 8px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🐬 MySQL CRUD Operations</h1>
+    
+    <!-- Server Status -->
+    <div class="container">
+        <h2>Backend Server Status</h2>
+        <div id="serverStatus" class="server-status">Checking server...</div>
+        <button onclick="checkServerStatus()" class="info-btn">Check Server Status</button>
+    </div>
+
+    <!-- Connection Configuration -->
+    <div class="container">
+        <h2>Database Connection</h2>
+        <div class="two-column">
+            <div class="form-group">
+                <label for="host">Host:</label>
+                <input type="text" id="host" placeholder="localhost" value="localhost">
+            </div>
+            <div class="form-group">
+                <label for="port">Port:</label>
+                <input type="number" id="port" placeholder="3306" value="3306">
+            </div>
+        </div>
+        <div class="two-column">
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" id="username" placeholder="root" value="root">
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" placeholder="Enter MySQL password">
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="database">Database Name:</label>
+            <input type="text" id="database" placeholder="testdb" value="testdb">
+        </div>
+        <button onclick="connectToDatabase()">Connect to MySQL</button>
+        <div id="connectionStatus" class="status" style="display: none;"></div>
+    </div>
+
+    <!-- Database Info -->
+    <div class="container">
+        <h2>Database Information</h2>
+        <div class="three-column">
+            <button onclick="getDatabases()" class="info-btn">List Databases</button>
+            <button onclick="getTables()" class="info-btn">List Tables</button>
+            <button onclick="getTableInfo()" class="info-btn">Table Structure</button>
+        </div>
+        <div class="form-group" style="margin-top: 10px;">
+            <input type="text" id="tableInfoName" placeholder="Enter table name for structure info">
+        </div>
+        <div id="infoResult" class="results" style="display: none;"></div>
+    </div>
+
+    <!-- CREATE TABLE Operation -->
+    <div class="container">
+        <h2>Create Table</h2>
+        <div class="operation">
+            <div>
+                <div class="form-group">
+                    <label for="newTableName">Table Name:</label>
+                    <input type="text" id="newTableName" placeholder="users">
+                </div>
+                <div class="form-group">
+                    <label>Columns:</label>
+                    <div id="columnsContainer">
+                        <div class="column-input">
+                            <input type="text" placeholder="Column Name" class="col-name">
+                            <select class="col-type">
+                                <option value="INT">INT</option>
+                                <option value="VARCHAR(255)">VARCHAR(255)</option>
+                                <option value="TEXT">TEXT</option>
+                                <option value="DATETIME">DATETIME</option>
+                                <option value="BOOLEAN">BOOLEAN</option>
+                                <option value="DECIMAL(10,2)">DECIMAL(10,2)</option>
+                            </select>
+                            <label><input type="checkbox" class="col-primary"> PK</label>
+                            <label><input type="checkbox" class="col-auto"> AI</label>
+                            <button type="button" class="remove-column-btn" onclick="removeColumn(this)">×</button>
+                        </div>
+                    </div>
+                    <button type="button" class="add-column-btn" onclick="addColumn()">+ Add Column</button>
+                </div>
+                <button onclick="createTable()" class="create-btn">Create Table</button>
+            </div>
+            <div id="createTableResult" class="results" style="display: none;"></div>
+        </div>
+    </div>
+
+    <!-- INSERT Operation -->
+    <div class="container">
+        <h2>Insert Record</h2>
+        <div class="operation">
+            <div>
+                <div class="form-group">
+                    <label for="insertTable">Table Name:</label>
+                    <input type="text" id="insertTable" placeholder="users">
+                </div>
+                <div class="form-group">
+                    <label for="insertData">Record Data (JSON):</label>
+                    <textarea id="insertData" rows="6" placeholder='{"name": "John Doe", "email": "john@example.com", "age": 30}'></textarea>
+                </div>
+                <button onclick="insertRecord()" class="create-btn">Insert Record</button>
+            </div>
+            <div id="insertResult" class="results" style="display: none;"></div>
+        </div>
+    </div>
+
+    <!-- SELECT Operation -->
+    <div class="container">
+        <h2>Select Records</h2>
+        <div class="operation">
+            <div>
+                <div class="form-group">
+                    <label for="selectTable">Table Name:</label>
+                    <input type="text" id="selectTable" placeholder="users">
+                </div>
+                <div class="form-group">
+                    <label for="selectColumns">Columns (comma separated or * for all):</label>
+                    <input type="text" id="selectColumns" placeholder="*" value="*">
+                </div>
+                <div class="form-group">
+                    <label for="whereClause">WHERE Clause (optional):</label>
+                    <input type="text" id="whereClause" placeholder="age > 18 AND name LIKE 'J%'">
+                </div>
+                <div class="form-group">
+                    <label for="selectLimit">Limit:</label>
+                    <input type="number" id="selectLimit" value="50" min="1" max="1000">
+                </div>
+                <button onclick="selectRecords()">Select Records</button>
+            </div>
+            <div id="selectResult" class="results" style="display: none;"></div>
+        </div>
+    </div>
+
+    <!-- UPDATE Operation -->
+    <div class="container">
+        <h2>Update Records</h2>
+        <div class="operation">
+            <div>
+                <div class="form-group">
+                    <label for="updateTable">Table Name:</label>
+                    <input type="text" id="updateTable" placeholder="users">
+                </div>
+                <div class="form-group">
+                    <label for="updateSet">SET Clause (JSON):</label>
+                    <textarea id="updateSet" rows="4" placeholder='{"age": 31, "city": "Boston"}'></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="updateWhere">WHERE Clause:</label>
+                    <input type="text" id="updateWhere" placeholder="id = 1 OR name = 'John'">
+                </div>
+                <button onclick="updateRecords()" class="update-btn">Update Records</button>
+            </div>
+            <div id="updateResult" class="results" style="display: none;"></div>
+        </div>
+    </div>
+
+    <!-- DELETE Operation -->
+    <div class="container">
+        <h2>Delete Records</h2>
+        <div class="operation">
+            <div>
+                <div class="form-group">
+                    <label for="deleteTable">Table Name:</label>
+                    <input type="text" id="deleteTable" placeholder="users">
+                </div>
+                <div class="form-group">
+                    <label for="deleteWhere">WHERE Clause (Required):</label>
+                    <input type="text" id="deleteWhere" placeholder="age < 18 OR status = 'inactive'">
+                </div>
+                <button onclick="deleteRecords()">Delete Records</button>
+            </div>
+            <div id="deleteResult" class="results" style="display: none;"></div>
+        </div>
+    </div>
+
+    <!-- RAW SQL Operation -->
+    <div class="container">
+        <h2>Execute Raw SQL Query</h2>
+        <div class="operation full-width">
+            <div>
+                <div class="form-group">
+                    <label for="rawQuery">SQL Query:</label>
+                    <textarea id="rawQuery" rows="8" placeholder="SELECT * FROM users WHERE age > 21;&#10;&#10;-- or&#10;&#10;CREATE INDEX idx_email ON users(email);&#10;&#10;-- or&#10;&#10;SHOW CREATE TABLE users;"></textarea>
+                </div>
+                <button onclick="executeQuery()" class="query-btn">Execute Query</button>
+            </div>
+            <div id="queryResult" class="results" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:5001/api';
+        let isConnected = false;
+
+        // Check if backend server is running
+        async function checkServerStatus() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/status`);
+                const data = await response.json();
+                
+                const statusElement = document.getElementById('serverStatus');
+                if (response.ok) {
+                    statusElement.className = 'server-status server-online';
+                    if (data.connected) {
+                        statusElement.textContent = `✅ Server Online - Connected to: ${data.current_db} as ${data.current_user} (MySQL ${data.mysql_version})`;
+                        isConnected = true;
+                    } else {
+                        statusElement.textContent = '✅ Server Online - Not connected to database';
+                        isConnected = false;
+                    }
+                } else {
+                    throw new Error('Server offline');
+                }
+            } catch (error) {
+                const statusElement = document.getElementById('serverStatus');
+                statusElement.className = 'server-status server-offline';
+                statusElement.textContent = '❌ Server Offline - Please start the Python backend server (python backend.py)';
+                isConnected = false;
+            }
+        }
+
+        // Connect to MySQL
+        async function connectToDatabase() {
+            const host = document.getElementById('host').value.trim();
+            const port = document.getElementById('port').value.trim();
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const database = document.getElementById('database').value.trim();
+
+            if (!username || !database) {
+                showStatus('connectionStatus', 'Username and database name are required', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/connect`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        host: host,
+                        port: port,
+                        username: username,
+                        password: password,
+                        database: database
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showStatus('connectionStatus', `✅ ${data.message}`, 'success');
+                    isConnected = true;
+                    checkServerStatus(); // Update server status
+                } else {
+                    showStatus('connectionStatus', `❌ ${data.message}`, 'error');
+                    isConnected = false;
+                }
+            } catch (error) {
+                showStatus('connectionStatus', `❌ Connection failed: ${error.message}`, 'error');
+                isConnected = false;
+            }
+        }
+
+        // Add column to create table form
+        function addColumn() {
+            const container = document.getElementById('columnsContainer');
+            const columnDiv = document.createElement('div');
+            columnDiv.className = 'column-input';
+            columnDiv.innerHTML = `
+                <input type="text" placeholder="Column Name" class="col-name">
+                <select class="col-type">
+                    <option value="INT">INT</option>
+                    <option value="VARCHAR(255)">VARCHAR(255)</option>
+                    <option value="TEXT">TEXT</option>
+                    <option value="DATETIME">DATETIME</option>
+                    <option value="BOOLEAN">BOOLEAN</option>
+                    <option value="DECIMAL(10,2)">DECIMAL(10,2)</option>
+                </select>
+                <label><input type="checkbox" class="col-primary"> PK</label>
+                <label><input type="checkbox" class="col-auto"> AI</label>
+                <button type="button" class="remove-column-btn" onclick="removeColumn(this)">×</button>
+            `;
+            container.appendChild(columnDiv);
+        }
+
+        function removeColumn(button) {
+            button.parentElement.remove();
+        }
+
+        // Create table
+        async function createTable() {
+            if (!checkConnection()) return;
+
+            const tableName = document.getElementById('newTableName').value.trim();
+            if (!tableName) {
+                showResult('createTableResult', 'Please enter table name', 'error');
+                return;
+            }
+
+            const columnInputs = document.querySelectorAll('.column-input');
+            const columns = [];
+
+            for (let input of columnInputs) {
+                const name = input.querySelector('.col-name').value.trim();
+                const type = input.querySelector('.col-type').value;
+                const primary = input.querySelector('.col-primary').checked;
+                const auto = input.querySelector('.col-auto').checked;
+
+                if (name) {
+                    columns.push({
+                        name: name,
+                        type: type,
+                        primary_key: primary,
+                        auto_increment: auto,
+                        not_null: primary || auto
+                    });
+                }
+            }
+
+            if (columns.length === 0) {
+                showResult('createTableResult', 'Please add at least one column', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/create-table`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        table_name: tableName,
+                        columns: columns
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showResult('createTableResult', `✅ ${data.message}\n\nSQL Query:\n${data.query}`, 'success');
+                    document.getElementById('newTableName').value = '';
+                    document.getElementById('columnsContainer').innerHTML = `
+                        <div class="column-input">
+                            <input type="text" placeholder="Column Name" class="col-name">
+                            <select class="col-type">
+                                <option value="INT">INT</option>
+                                <option value="VARCHAR(255)">VARCHAR(255)</option>
+                                <option value="TEXT">TEXT</option>
+                                <option value="DATETIME">DATETIME</option>
+                                <option value="BOOLEAN">BOOLEAN</option>
+                                <option value="DECIMAL(10,2)">DECIMAL(10,2)</option>
+                            </select>
+                            <label><input type="checkbox" class="col-primary"> PK</label>
+                            <label><input type="checkbox" class="col-auto"> AI</label>
+                            <button type="button" class="remove-column-btn" onclick="removeColumn(this)">×</button>
+                        </div>
+                    `;
+                } else {
+                    showResult('createTableResult', `❌ Error: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                showResult('createTableResult', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Insert record
+        async function insertRecord() {
+            if (!checkConnection()) return;
+
+            const tableName = document.getElementById('insertTable').value.trim();
+            const dataText = document.getElementById('insertData').value.trim();
+
+            if (!tableName || !dataText) {
+                showResult('insertResult', 'Please enter table name and data', 'error');
+                return;
+            }
+
+            try {
+                const data = JSON.parse(dataText);
+                
+                const response = await fetch(`${API_BASE_URL}/insert`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        table: tableName,
+                        data: data
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showResult('insertResult', `✅ ${result.message}\n\nInserted ID: ${result.inserted_id}\nAffected Rows: ${result.affected_rows}`, 'success');
+                    document.getElementById('insertData').value = '';
+                } else {
+                    showResult('insertResult', `❌ Error: ${result.message}`, 'error');
+                }
+            } catch (error) {
+                if (error instanceof SyntaxError) {
+                    showResult('insertResult', '❌ Invalid JSON format', 'error');
+                } else {
+                    showResult('insertResult', `❌ Error: ${error.message}`, 'error');
+                }
+            }
+        }
+
+        // Select records
+        async function selectRecords() {
+            if (!checkConnection()) return;
+
+            const tableName = document.getElementById('selectTable').value.trim();
+            const columns = document.getElementById('selectColumns').value.trim().split(',').map(c => c.trim()).filter(c => c);
+            const whereClause = document.getElementById('whereClause').value.trim();
+            const limit = parseInt(document.getElementById('selectLimit').value) || 50;
+
+            if (!tableName) {
+                showResult('selectResult', 'Please enter table name', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/select`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        table: tableName,
+                        columns: columns.length > 0 ? columns : ['*'],
+                        where: whereClause,
+                        limit: limit
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    let result = `✅ Found ${data.count} record(s)\n\nSQL Query: ${data.query}\n\n`;
+                    if (data.records.length > 0) {
+                        result += JSON.stringify(data.records, null, 2);
+                    } else {
+                        result += 'No records found';
+                    }
+                    showResult('selectResult', result, 'success');
+                } else {
+                    showResult('selectResult', `❌ Error: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                showResult('selectResult', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Update records
+        async function updateRecords() {
+            if (!checkConnection()) return;
+
+            const tableName = document.getElementById('updateTable').value.trim();
+            const setText = document.getElementById('updateSet').value.trim();
+            const whereClause = document.getElementById('updateWhere').value.trim();
+
+            if (!tableName || !setText || !whereClause) {
+                showResult('updateResult', 'Please enter table name, SET clause, and WHERE clause', 'error');
+                return;
+            }
+
+            try {
+                const setData = JSON.parse(setText);
+                
+                const response = await fetch(`${API_BASE_URL}/update`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        table: tableName,
+                        set: setData,
+                        where: whereClause
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showResult('updateResult', `✅ ${data.message}\n\nAffected Rows: ${data.affected_rows}\nSQL Query: ${data.query}`, 'success');
+                    document.getElementById('updateSet').value = '';
+                    document.getElementById('updateWhere').value = '';
+                } else {
+                    showResult('updateResult', `❌ Error: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                if (error instanceof SyntaxError) {
+                    showResult('updateResult', '❌ Invalid JSON format in SET clause', 'error');
+                } else {
+                    showResult('updateResult', `❌ Error: ${error.message}`, 'error');
+                }
+            }
+        }
+
+        // Delete records
+        async function deleteRecords() {
+            if (!checkConnection()) return;
+
+            const tableName = document.getElementById('deleteTable').value.trim();
+            const whereClause = document.getElementById('deleteWhere').value.trim();
+
+            if (!tableName || !whereClause) {
+                showResult('deleteResult', 'Please enter table name and WHERE clause', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/delete`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        table: tableName,
+                        where: whereClause
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showResult('deleteResult', `✅ ${data.message}\n\nAffected Rows: ${data.affected_rows}\nSQL Query: ${data.query}`, 'success');
+                    document.getElementById('deleteWhere').value = '';
+                } else {
+                    showResult('deleteResult', `❌ Error: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                showResult('deleteResult', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Execute raw query
+        async function executeQuery() {
+            if (!checkConnection()) return;
+
+            const query = document.getElementById('rawQuery').value.trim();
+
+            if (!query) {
+                showResult('queryResult', 'Please enter a SQL query', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/execute-query`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ query: query })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    let result = `✅ Query executed successfully!\n\nSQL Query: ${data.query}\n\n`;
+                    if (data.records) {
+                        result += `Found ${data.count} record(s):\n${JSON.stringify(data.records, null, 2)}`;
+                    } else {
+                        result += `Affected Rows: ${data.affected_rows}`;
+                    }
+                    showResult('queryResult', result, 'success');
+                } else {
+                    showResult('queryResult', `❌ Error: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                showResult('queryResult', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Get databases list
+        async function getDatabases() {
+            if (!isConnected) {
+                showResult('infoResult', '❌ Please connect to database first', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/databases`);
+                const data = await response.json();
+
+                if (data.success) {
+                    showResult('infoResult', `✅ Databases:\n\n${JSON.stringify(data.databases, null, 2)}`, 'success');
+                } else {
+                    showResult('infoResult', `❌ Error: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                showResult('infoResult', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Get tables list
+        async function getTables() {
+            if (!isConnected) {
+                showResult('infoResult', '❌ Please connect to database first', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/tables`);
+                const data = await response.json();
+
+                if (data.success) {
+                    showResult('infoResult', `✅ Tables in current database:\n\n${JSON.stringify(data.tables, null, 2)}`, 'success');
+                } else {
+                    showResult('infoResult', `❌ Error: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                showResult('infoResult', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Get table structure info
+        async function getTableInfo() {
+            const tableName = document.getElementById('tableInfoName').value.trim();
+            
+            if (!isConnected) {
+                showResult('infoResult', '❌ Please connect to database first', 'error');
+                return;
+            }
+
+            if (!tableName) {
+                showResult('infoResult', '❌ Please enter table name', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/table-info`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ table: tableName })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    const result = `✅ Table: ${data.table}
+Row Count: ${data.row_count}
+
+Column Structure:
+${JSON.stringify(data.columns, null, 2)}`;
+                    showResult('infoResult', result, 'success');
+                } else {
+                    showResult('infoResult', `❌ Error: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                showResult('infoResult', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Helper functions
+        function checkConnection() {
+            if (!isConnected) {
+                alert('❌ Please connect to MySQL database first!');
+                return false;
+            }
+            return true;
+        }
+
+        function showResult(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            element.innerHTML = `<pre>${message}</pre>`;
+            element.className = `results ${type}`;
+        }
+
+        function showStatus(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            element.textContent = message;
+            element.className = `status ${type}`;
+        }
+
+        // Initialize on page load
+        window.addEventListener('load', function() {
+            checkServerStatus();
+            
+            // Show instructions
+            console.log(`
+=== MySQL CRUD Application ===
+
+1. Start MySQL server (if not running):
+   - Windows: net start mysql
+   - macOS: brew services start mysql
+   - Linux: sudo systemctl start mysql
+
+2. Start the Python backend server:
+   python backend.py
+
+3. Server will run on: http://localhost:5001
+
+4. Required Python packages:
+   pip install flask flask-cors mysql-connector-python
+
+5. Then use this interface to perform CRUD operations!
+            `);
+        });
+
+        // Auto-check server status every 30 seconds
+        setInterval(checkServerStatus, 30000);
+    </script>
+</body>
+</html>
